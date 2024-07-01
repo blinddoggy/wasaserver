@@ -9,7 +9,7 @@ import Roadmap from "../components/roadmap";
 import Footer from "../components/footer";
 import FrameComponent5 from "../components/frame-component5.js";
 import EnviarSol from "../components/enviarsol.js";
-import EnviarSpl from "../components/enviarsol.js"
+import EnviarSpl from "../components/EnviarToken2022.js"
 
 
 const Desktop = () => {
