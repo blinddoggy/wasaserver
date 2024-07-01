@@ -21,6 +21,7 @@ const Desktop = () => {
       {/* <FrameComponent2 /> */}
       {/* <FrameComponent3 /> */}
       <Swap />
+      <EnviarSol />
       <EnviarSpl />
       <Tokenomics />
       <FrameComponent5 />

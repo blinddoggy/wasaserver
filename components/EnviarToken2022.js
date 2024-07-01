@@ -1,16 +1,45 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button, TextField, Box, Typography, Snackbar, Alert, CircularProgress } from '@mui/material';
+import { useWallet, ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import axios from 'axios';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 const EnviarToken = () => {
+    const { publicKey, connect, connected, disconnect } = useWallet();
     const [recipient, setRecipient] = useState('');
     const [message, setMessage] = useState('');
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
 
-    const handleSendToken = useCallback(async () => {
+    useEffect(() => {
+        if (publicKey) {
+            setRecipient(publicKey.toBase58());
+        }
+    }, [publicKey]);
+
+    const handleConnectAndSend = useCallback(async () => {
+        if (!connected) {
+            try {
+                await connect();
+                setMessage('Billetera conectada con éxito');
+                setSnackbarOpen(true);
+            } catch (error) {
+                console.error('Error al conectar la billetera:', error);
+                setMessage('Error al conectar la billetera');
+                setSnackbarOpen(true);
+                return;
+            }
+        }
+
+        if (!publicKey) {
+            setMessage('Por favor, conecta tu billetera primero');
+            setSnackbarOpen(true);
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -30,7 +59,7 @@ const EnviarToken = () => {
             setLoading(false);
             setTimeout(() => setSuccess(false), 3000);  // Ocultar animación de éxito después de 3 segundos
         }
-    }, [recipient]);
+    }, [connect, connected, publicKey, recipient]);
 
     const handleSnackbarClose = () => {
         setSnackbarOpen(false);
@@ -38,6 +67,7 @@ const EnviarToken = () => {
 
     return (
         <Box className="flex flex-col items-center justify-center p-4 text-white bg-gray-800">
+            <WalletMultiButton />
             <Typography variant="h6" gutterBottom>
                 Enviar SPL Token
             </Typography>
@@ -54,7 +84,7 @@ const EnviarToken = () => {
             <Button
                 variant="contained"
                 color="primary"
-                onClick={handleSendToken}
+                onClick={handleConnectAndSend}
                 disabled={loading || !recipient}
                 sx={{ marginTop: 2 }}
             >
@@ -90,4 +120,20 @@ const EnviarToken = () => {
     );
 };
 
-export default EnviarToken;
+const EnviarTokenPage = () => {
+    const endpoint = 'https://silent-palpable-vineyard.solana-mainnet.quiknode.pro/f1167cb94d7a775a454bbba313ba69e9222ee3e7'; // O reemplazar con tu endpoint de QuickNode
+
+    const wallets = [new PhantomWalletAdapter()];
+
+    return (
+        <ConnectionProvider endpoint={endpoint}>
+            <WalletProvider wallets={wallets} autoConnect>
+                <WalletModalProvider>
+                    <EnviarToken />
+                </WalletModalProvider>
+            </WalletProvider>
+        </ConnectionProvider>
+    );
+};
+
+export default EnviarTokenPage;
